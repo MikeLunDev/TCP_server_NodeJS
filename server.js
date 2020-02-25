@@ -3,8 +3,8 @@ const port = 7070;
 const host = "127.0.0.1";
 const express = require("express");
 const vehicleRouter = require("./routes/vehicleRouter");
+const { handleData } = require("./utils/utils");
 
-//da fare cambiare i protocolli con \n e looppare i comandi
 //HTTP SERVER
 const app = express();
 app.set("port", process.env.PORT || 3055);
@@ -29,7 +29,8 @@ server.on("connection", sock => {
   });
 
   // Add a 'close' event handler to this instance of socket
-  sock.on("close", data => {
+  sock.on("close", () => {
+    //deleting the socket that triggers the close event from the list
     let index = sockets.findIndex(el => el.remoteAddress === sock.remoteAddress && el.remotePort === sock.remotePort);
     if (index !== -1) sockets.splice(index, 1);
   });
@@ -41,29 +42,5 @@ server.on("connection", sock => {
 server.on("error", err => {
   console.log(`Internal server error: ${err.message}`);
 });
-
-const handleData = (data, sock) => {
-  let dataFromClientString = data.toString("ascii");
-  dataFromClientString.split("\n").forEach(command => {
-    console.log(command);
-    if (command === "PING.") {
-      sock.write("PONG.\n");
-    }
-    let dataFromClientArray = command.split(" ");
-    //checking if it is the connecting message which includes a uuid
-    if (/[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}/.test(dataFromClientArray[3])) {
-      //set the uuid as unique id of that specific socket
-      sock.device_id = dataFromClientArray[3].slice(0, dataFromClientArray[3].length - 1);
-      sock.write("HI,  NICE TO MEET YOU!\n");
-    }
-    if (dataFromClientArray[0] === "REPORT.") {
-      sock.write("OK, THANKS!\n");
-    }
-    if (command === "GOTTA GO.") {
-      sock.write("SEE YA.\n");
-      sock.end();
-    }
-  });
-};
 
 module.exports.sockets = sockets;

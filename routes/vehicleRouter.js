@@ -7,6 +7,7 @@ router.get("/info/:device_id", async (req, res) => {
     const { sockets } = socketsArray;
     let index = sockets.findIndex(socket => socket.device_id === req.params.device_id);
     if (index != -1) {
+      res.status(200).send("Information sent to the server!");
       sockets[index].write("HOW'S IT GOING?\n");
     } else {
       res.status(404).send(`Device with id ${req.params.device_id} not found`);
@@ -21,6 +22,7 @@ router.post("/set_update_frequency/:device_id", async (req, res) => {
     const { sockets } = socketsArray;
     let index = sockets.findIndex(socket => socket.device_id === req.params.device_id);
     if (index != -1) {
+      res.status(200).send(`Vehicle with ${req.params.device_id} will be notified.`);
       sockets[index].write(`KEEP ME POSTED EVERY ${parseInt(req.body.interval)} SECONDS.\n`);
     } else {
       res.status(404).send(`Device with id ${req.params.device_id} not found`);
@@ -35,7 +37,12 @@ router.post("/change_vehicle_state/:device_id", async (req, res) => {
     const { sockets } = socketsArray;
     let index = sockets.findIndex(socket => socket.device_id === req.params.device_id);
     if (index != -1) {
-      sockets[index].write(req.body.command + "\n");
+      if (req.body.command === "HEY YOU, RUN!" || req.body.command === "HEY YOU, REST!") {
+        res.status(200).send(`Vehicle with ${req.params.device_id} will change it's current state if possible.`);
+        sockets[index].write(req.body.command + "\n");
+      } else {
+        res.status(400).send(`${req.body.command} is not a valid command.`);
+      }
     } else {
       res.status(404).send(`Device with id ${req.params.device_id} not found`);
     }
@@ -49,7 +56,12 @@ router.post("/end_connection/:device_id", async (req, res) => {
     const { sockets } = socketsArray;
     let index = sockets.findIndex(socket => socket.device_id === req.params.device_id);
     if (index != -1) {
-      sockets[index].write(req.body.command + "\n");
+      if (req.body.command === "GOTTA GO.") {
+        res.status(200).send(`Connection with vehicle ${req.params.device_id} will be ended.`);
+        sockets[index].write(req.body.command + "\n");
+      } else {
+        res.status(400).send(`${req.body.command} is not a valid command.`);
+      }
     } else {
       res.status(404).send(`Device with id ${req.params.device_id} not found`);
     }
